@@ -1,14 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Nav from "./components/Nav";
 import Searchbar from "./components/Searchbar";
 import Weathercard from "./components/Weathercard";
 import Weatherdetail from "./components/Weatherdetail";
+import { ClipLoader } from "react-spinners";
 
 const App = () => {
-  let [city, setCity] = useState("");
+  let [city, setCity] = useState("kaparwar");
   let [weather, setWeather] = useState(null);
   let [error, setError] = useState("");
+  let [loading, setLoading] = useState(false);
+  useEffect(() => {
+    fetchWeather();
+  }, []);
   const fetchWeather = async () => {
+    setLoading(true);
+  
     try {
       const res = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${import.meta.env.VITE_WEATHER_API_KEY}&units=metric`,
@@ -21,9 +28,11 @@ const App = () => {
         setError("");
         setWeather(data);
       }
+      setLoading(false);
     } catch (error) {
-      console.log("error", error);
+      setLoading(false);
     }
+    setCity("");
   };
 
   return (
@@ -31,8 +40,16 @@ const App = () => {
       <Nav />
       <Searchbar city={city} setCity={setCity} fetchWeather={fetchWeather} />
       {error && <p className="text-red-500 text-center mt-2">{error}</p>}
-      <Weathercard weather={weather} />
-      <Weatherdetail weather={weather} />
+      {loading ? (
+        <div className="flex justify-center mt-10">
+          <ClipLoader color="#378ADD" size={50} />
+        </div>
+      ) : (
+        <>
+          <Weathercard weather={weather} />
+          <Weatherdetail weather={weather} />
+        </>
+      )}
     </div>
   );
 };
